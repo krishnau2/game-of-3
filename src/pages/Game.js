@@ -5,12 +5,18 @@ import { db } from "../services/firebase";
 const secondUser = { name: "playerB", email: "b@b.com", type: "user" };
 
 function Game() {
+  const [user, setUser] = useState("");
   const [currentGame, setCurrentGame] = useState(null);
   let { gameId } = useParams();
 
   useEffect(() => {
     fetchCurrentGame();
   }, []);
+
+  const _handleUserName = e => {
+    console.log(e.target.value);
+    setUser(e.target.value);
+  };
 
   const fetchCurrentGame = async () => {
     let gameObj = db.child(gameId);
@@ -34,31 +40,48 @@ function Game() {
   const renderLogItems = () => {
     if (currentGame && currentGame.log) {
       console.log("Log: ", currentGame.log);
-      return currentGame.log.map(item => {
-        return <li>{item.startingNumber}</li>;
+      return currentGame.log.map((item, index) => {
+        return <li key={index}>{item.startingNumber}</li>;
       });
     }
-  };
-
-  const renderLog = () => {
-    return <ul>{renderLogItems()}</ul>;
   };
 
   const _handleUserInput = input => {
     console.log("You pressed: ", input);
   };
 
-  return (
-    <div className="Game">
-      <h2>Game Area... Id: {gameId}</h2>
-      <div>{renderLog()}</div>
+  const _renderUserControls = () => {
+    let disabled = "disabled";
+    if (currentGame && currentGame.currentPlayer === user) {
+      disabled = "";
+    }
+
+    return (
       <div>
-        <button disabled="" onClick={() => _handleUserInput(-1)}>
+        <button disabled={disabled} onClick={() => _handleUserInput(-1)}>
           -1
         </button>
-        <button onClick={() => _handleUserInput(0)}>0</button>
-        <button onClick={() => _handleUserInput(1)}>+1</button>
+        <button disabled={disabled} onClick={() => _handleUserInput(0)}>
+          0
+        </button>
+        <button disabled={disabled} onClick={() => _handleUserInput(1)}>
+          +1
+        </button>
       </div>
+    );
+  };
+
+  return (
+    <div className="Game">
+      <div>
+        User:{" "}
+        <input type="text" onChange={e => _handleUserName(e)} value={user} />
+      </div>
+      <h2>Game Area... Id: {gameId}</h2>
+      <div>
+        <ul>{renderLogItems()}</ul>
+      </div>
+      {_renderUserControls()}
     </div>
   );
 }
