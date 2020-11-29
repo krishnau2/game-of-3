@@ -8,6 +8,7 @@ function Game() {
   const [user, setUser] = useState("");
   const [currentGame, setCurrentGame] = useState(null);
   let { gameId } = useParams();
+  let gameObj = db.child(gameId);
 
   useEffect(() => {
     fetchCurrentGame();
@@ -19,8 +20,6 @@ function Game() {
   };
 
   const fetchCurrentGame = async () => {
-    let gameObj = db.child(gameId);
-
     await gameObj.on("value", snapShot => {
       console.log("Current Game: ", snapShot.val());
       setCurrentGame(snapShot.val());
@@ -41,13 +40,54 @@ function Game() {
     if (currentGame && currentGame.log) {
       console.log("Log: ", currentGame.log);
       return currentGame.log.map((item, index) => {
-        return <li key={index}>{item.startingNumber}</li>;
+        return (
+          <li key={index}>
+            {item.player} - {item.startingNumber}
+          </li>
+        );
       });
     }
   };
 
-  const _handleUserInput = input => {
-    console.log("You pressed: ", input);
+  const _gameLogic = inputVal => {
+    let logObject = {
+      player: user,
+      inputNumber: inputVal,
+      startingNumber: currentGame.currentNumber
+    };
+
+    let nextNumber = currentGame.currentNumber;
+    let calculatedNumber = inputVal + currentGame.currentNumber;
+
+    let divisibleBy3 = calculatedNumber % 3 === 0;
+    if (divisibleBy3) {
+      nextNumber = calculatedNumber / 3;
+    }
+
+    logObject.divisibleBy3 = divisibleBy3;
+    logObject.nextNumber = nextNumber;
+
+    return logObject;
+  };
+
+  const _handleUserInput = inputVal => {
+    console.log("You pressed: ", inputVal);
+
+    let newLogObject = _gameLogic(inputVal);
+
+    let log = currentGame.log;
+    log.push(newLogObject);
+
+    let nextUser = null;
+    if (currentGame) {
+      nextUser = currentGame.players.find(player => player.name !== user);
+
+      gameObj.update({
+        currentPlayer: nextUser.name,
+        currentNumber: newLogObject.nextNumber,
+        log: log
+      });
+    }
   };
 
   const _renderUserControls = () => {
