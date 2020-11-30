@@ -36,7 +36,7 @@ const GameLog = props => {
 
       return (
         <div key={index} className={`log-item-wrap ${alignment}`}>
-          <div className="user">{item.player}</div>
+          <div className="user">{item.player.username}</div>
           <div className="info">
             {renderUserInput(item)}
             {renderExpression(item)}
