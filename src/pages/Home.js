@@ -1,44 +1,63 @@
 import React, { useState } from "react";
 import { db } from "../services/firebase";
+import Button from "react-bootstrap/Button";
 
-const initialInputNumber = 19;
+import RegistrationForm from "../components/RegistrationForm";
 
-function Home() {
-  const [gameKey, setGameKey] = useState(null);
+function Home(props) {
+  const [modalShow, setModalShow] = React.useState(false);
 
   const createGame = async () => {
+    let currentUser = JSON.parse(sessionStorage.getItem("user"));
+    let startingNumber = parseInt(currentUser.startingNumber);
+
     let newGameObject = {
-      startingNumber: initialInputNumber,
-      currentNumber: initialInputNumber,
-      currentPlayer: "playerA",
-      createdBy: "playerA",
+      startingNumber: startingNumber,
+      currentNumber: startingNumber,
+      currentPlayer: currentUser,
+      createdBy: currentUser,
       winner: null,
-      players: [{ name: "playerA", email: "a@a.com", type: "user" }],
+      players: [currentUser],
       status: "waiting",
       log: [
         {
-          player: "playerA",
+          player: currentUser,
           inputNumber: null,
-          startingNumber: initialInputNumber,
+          startingNumber: startingNumber,
           divisibleByThree: null,
-          nextNumber: initialInputNumber
+          nextNumber: startingNumber
         }
       ]
     };
+
     let newGame = await db.push(newGameObject);
-    console.log("New Game Key: ", newGame.key);
-    setGameKey(newGame.key);
+    props.history.push(`/game/${newGame.key}`);
+  };
+
+  const _handleUserRegistration = user => {
+    sessionStorage.setItem("user", JSON.stringify(user));
+    createGame();
+    setModalShow(false);
   };
 
   return (
     <div className="Home">
-      <h2>Home page</h2>
-      <div>
-        <button onClick={createGame}>Create New Game</button>
+      <div className="app-name">
+        <h2>Game of 3</h2>
       </div>
-      <div>
-        <h3>New Game Key: {gameKey}</h3>
+      <Button variant="primary" onClick={() => setModalShow(true)}>
+        New Game
+      </Button>
+      <div className="game-rules">
+        <h2>Game Rules</h2>
       </div>
+
+      <RegistrationForm
+        show={modalShow}
+        newGame={true}
+        onHide={() => setModalShow(false)}
+        register={_handleUserRegistration}
+      />
     </div>
   );
 }
