@@ -6,8 +6,10 @@ import GameHeader from "../components/GameHeader";
 import GameShareLink from "../components/GameShareLink";
 import RegistrationForm from "../components/RegistrationForm";
 import GameMoves from "../components/GameMoves";
+import GameControls from "../components/GameControls";
 
 import { getCurrentUserSession, clearSession } from "../services/util";
+import { gameStatus } from "../services/gameConstants";
 
 function Game() {
   const [showForm, showRegistrationForm] = useState(false);
@@ -105,7 +107,7 @@ function Game() {
         currentPlayer: null,
         currentNumber: newMoveObject.nextNumber,
         log: log,
-        status: "completed",
+        status: gameStatus.ended,
         winner: user
       });
     }
@@ -118,48 +120,11 @@ function Game() {
     gameObj.update({
       currentPlayer: user,
       players: playerList,
-      status: "inprogress"
+      status: gameStatus.inprogress
     });
     setUser(user);
     // sessionStorage.setItem("user", JSON.stringify(user));
     showRegistrationForm(false);
-  };
-
-  const _renderUserControls = () => {
-    let disabled = "disabled";
-    if (
-      currentGame &&
-      currentGame.currentPlayer &&
-      currentGame.currentPlayer.email === user.email
-    ) {
-      disabled = "";
-    }
-
-    return (
-      <div className="user-control-wrap">
-        <button
-          className="user-control-btn"
-          disabled={disabled}
-          onClick={() => _handleGameMoves(-1)}
-        >
-          -1
-        </button>
-        <button
-          className="user-control-btn"
-          disabled={disabled}
-          onClick={() => _handleGameMoves(0)}
-        >
-          0
-        </button>
-        <button
-          className="user-control-btn"
-          disabled={disabled}
-          onClick={() => _handleGameMoves(1)}
-        >
-          +1
-        </button>
-      </div>
-    );
   };
 
   const whoIsPlaying = () => {
@@ -182,7 +147,11 @@ function Game() {
         whoIsPlaying={whoIsPlaying()}
       />
       <GameMoves log={currentGame ? currentGame.log : []} />
-      {_renderUserControls()}
+      <GameControls
+        currentGame={currentGame}
+        user={user}
+        handleGameMoves={_handleGameMoves}
+      />
       <RegistrationForm
         show={showForm}
         newGame={false}

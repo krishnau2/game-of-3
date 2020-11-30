@@ -3,6 +3,7 @@ import { db } from "../services/firebase";
 import Button from "react-bootstrap/Button";
 
 import RegistrationForm from "../components/RegistrationForm";
+import { gameStatus } from "../services/gameConstants";
 
 function Home(props) {
   const [modalShow, setModalShow] = React.useState(false);
@@ -18,7 +19,7 @@ function Home(props) {
       createdBy: currentUser,
       winner: null,
       players: [currentUser],
-      status: "waiting",
+      status: gameStatus.waiting,
       log: [
         {
           player: currentUser,
