@@ -2,11 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../services/firebase";
 
+import GameHeader from "../components/GameHeader";
+import GameShareLink from "../components/GameShareLink";
 import RegistrationForm from "../components/RegistrationForm";
 import GameMoves from "../components/GameMoves";
 
+import { getCurrentUserSession, clearSession } from "../services/util";
+
 function Game() {
-  const [modalShow, showRegistrationForm] = useState(false);
+  const [showForm, showRegistrationForm] = useState(false);
   const [user, setUser] = useState({});
   const [currentGame, setCurrentGame] = useState(null);
   let { gameId } = useParams();
@@ -16,29 +20,20 @@ function Game() {
     fetchCurrentGame();
   }, []);
 
-  const _isCurrentUserSessionIsValidPlayer = (playerList, currentUser) => {
+  const _isCurrentUserIsValidPlayer = (playerList, currentUser) => {
     return playerList.find(player => player.email === currentUser.email);
   };
 
-  const clearSession = () => {
-    sessionStorage.removeItem("user");
-  };
-
   const fetchCurrentGame = async () => {
-    let currentUser = JSON.parse(sessionStorage.getItem("user"));
-
+    let currentUser = getCurrentUserSession();
     let currentGameValue = null;
+
     await gameObj.on("value", snapShot => {
-      // console.log("Current Game: ", snapShot.val());
       currentGameValue = snapShot.val();
-      // console.log("CurrentGameValue: ", currentGameValue);
 
       if (currentUser) {
         if (
-          _isCurrentUserSessionIsValidPlayer(
-            currentGameValue.players,
-            currentUser
-          )
+          _isCurrentUserIsValidPlayer(currentGameValue.players, currentUser)
         ) {
           // A participant in current game
           setUser(currentUser);
@@ -65,7 +60,7 @@ function Game() {
 
   const _calculateNumberForNextMove = inputVal => {
     let currentNumber = parseInt(currentGame.currentNumber);
-    let logObject = {
+    let moveObject = {
       player: user,
       inputNumber: inputVal,
       startingNumber: currentNumber
@@ -79,10 +74,10 @@ function Game() {
       nextNumber = calculatedNumber / 3;
     }
 
-    logObject.divisibleBy3 = divisibleBy3;
-    logObject.nextNumber = nextNumber;
+    moveObject.divisibleBy3 = divisibleBy3;
+    moveObject.nextNumber = nextNumber;
 
-    return logObject;
+    return moveObject;
   };
 
   const findNextPlayer = () => {
@@ -94,8 +89,6 @@ function Game() {
   };
 
   const _handleGameMoves = inputVal => {
-    console.log("You pressed: ", inputVal);
-
     let newMoveObject = _calculateNumberForNextMove(inputVal);
 
     let log = currentGame.log;
@@ -119,17 +112,16 @@ function Game() {
   };
 
   const _handleUserRegistration = user => {
-    console.log("Second User: ", user);
-
     let playerList = currentGame.players;
     playerList.push(user);
+
     gameObj.update({
       currentPlayer: user,
       players: playerList,
       status: "inprogress"
     });
     setUser(user);
-    sessionStorage.setItem("user", JSON.stringify(user));
+    // sessionStorage.setItem("user", JSON.stringify(user));
     showRegistrationForm(false);
   };
 
@@ -170,15 +162,29 @@ function Game() {
     );
   };
 
+  const whoIsPlaying = () => {
+    if (
+      currentGame &&
+      currentGame.currentPlayer &&
+      currentGame.currentPlayer.email === user.email
+    ) {
+      return "You";
+    } else {
+      return "Opponent";
+    }
+  };
+
   return (
     <div className="game-wrap">
-      <h2>Game Id: {gameId}</h2>
-      <div>
-        <GameMoves log={currentGame ? currentGame.log : []} />
-      </div>
+      <GameShareLink />
+      <GameHeader
+        players={currentGame ? currentGame.players : null}
+        whoIsPlaying={whoIsPlaying()}
+      />
+      <GameMoves log={currentGame ? currentGame.log : []} />
       {_renderUserControls()}
       <RegistrationForm
-        show={modalShow}
+        show={showForm}
         newGame={false}
         onHide={() => showRegistrationForm(false)}
         register={_handleUserRegistration}

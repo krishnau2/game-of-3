@@ -38,7 +38,7 @@ const RegistrationForm = props => {
     <Modal {...props} centered backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          Registeration
+          Registration
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

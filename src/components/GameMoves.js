@@ -17,14 +17,22 @@ const GameMoves = props => {
 
   const renderExpression = item => {
     if (item.inputNumber || allowedInputValues.includes(item.inputNumber)) {
+      let expression = `[(${item.inputNumber} + ${item.startingNumber}) / 3 ] = ${item.nextNumber}`;
       let highlighter = item.divisibleBy3
         ? "divisible-by-three"
         : "not-divisible-by-three";
-      return (
-        <div className={`game-expression ${highlighter}`}>
-          {`[(${item.inputNumber} + ${item.startingNumber}) / 3 ] = ${item.nextNumber}`}
-        </div>
-      );
+
+      if (item.divisibleBy3) {
+        return (
+          <div className="game-expression divisible-by-three">{expression}</div>
+        );
+      } else {
+        return (
+          <div className="game-expression not-divisible-by-three">
+            {expression}
+          </div>
+        );
+      }
     } else {
       return null;
     }
@@ -38,7 +46,7 @@ const GameMoves = props => {
 
       return (
         <div key={index} className={`log-item-wrap ${alignment}`}>
-          <div className="user">{item.player.username}</div>
+          {/* <div className="user">{item.player.username}</div> */}
           <div className="info">
             {renderUserInput(item)}
             {renderExpression(item)}
@@ -51,7 +59,7 @@ const GameMoves = props => {
     });
   };
 
-  return <div>{renderLogItems()}</div>;
+  return <div className="game-moves-container">{renderLogItems()}</div>;
 };
 
 export default GameMoves;
