@@ -51,6 +51,21 @@ function Home(props) {
       </Button>
       <div className="game-rules">
         <h2>Game Rules</h2>
+        <ul>
+          <li>First Player starts with a random number.</li>
+          <li>
+            Then Second Player need to chose from (-1, 0, +1) to make the numer
+            divisible by 3.
+          </li>
+          <li>
+            Then a new number is formed by dividing current number by 3 and
+            passed to the First player.
+          </li>
+          <li>
+            The above steps continues until a player reaches 1 after dividing by
+            3, and that player wins the game.
+          </li>
+        </ul>
       </div>
 
       <RegistrationForm
