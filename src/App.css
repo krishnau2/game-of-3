@@ -87,6 +87,15 @@
   box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.2),
     0 2px 6px 0 rgba(0, 0, 0, 0.19);
 }
+.divisible-by-three {
+  border-color: #06ca0c;
+}
+
+.not-divisible-by-three {
+  border-color: #e81313;
+}
+
+/* #06ca0c #e81313 */
 
 .next-number {
   margin-top: 5px;

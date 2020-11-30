@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { db } from "../services/firebase";
 
 import RegistrationForm from "../components/RegistrationForm";
-import GameLog from "../components/GameLog";
+import GameMoves from "../components/GameMoves";
 
 function Game() {
   const [modalShow, showRegistrationForm] = useState(false);
@@ -63,7 +63,7 @@ function Game() {
     });
   };
 
-  const _gameLogic = inputVal => {
+  const _calculateNumberForNextMove = inputVal => {
     let currentNumber = parseInt(currentGame.currentNumber);
     let logObject = {
       player: user,
@@ -85,24 +85,35 @@ function Game() {
     return logObject;
   };
 
-  const _handleUserInput = inputVal => {
+  const findNextPlayer = () => {
+    return currentGame.players.find(player => player.email !== user.email);
+  };
+
+  const isNextMovePossible = currentMove => {
+    return currentMove.nextNumber !== 1;
+  };
+
+  const _handleGameMoves = inputVal => {
     console.log("You pressed: ", inputVal);
 
-    let newLogObject = _gameLogic(inputVal);
+    let newMoveObject = _calculateNumberForNextMove(inputVal);
 
     let log = currentGame.log;
-    log.push(newLogObject);
+    log.push(newMoveObject);
 
-    let nextUser = null;
-    if (currentGame) {
-      nextUser = currentGame.players.find(
-        player => player.email !== user.email
-      );
-
+    if (isNextMovePossible(newMoveObject)) {
       gameObj.update({
-        currentPlayer: nextUser,
-        currentNumber: newLogObject.nextNumber,
+        currentPlayer: findNextPlayer(),
+        currentNumber: newMoveObject.nextNumber,
         log: log
+      });
+    } else {
+      gameObj.update({
+        currentPlayer: null,
+        currentNumber: newMoveObject.nextNumber,
+        log: log,
+        status: "completed",
+        winner: user
       });
     }
   };
@@ -137,21 +148,21 @@ function Game() {
         <button
           className="user-control-btn"
           disabled={disabled}
-          onClick={() => _handleUserInput(-1)}
+          onClick={() => _handleGameMoves(-1)}
         >
           -1
         </button>
         <button
           className="user-control-btn"
           disabled={disabled}
-          onClick={() => _handleUserInput(0)}
+          onClick={() => _handleGameMoves(0)}
         >
           0
         </button>
         <button
           className="user-control-btn"
           disabled={disabled}
-          onClick={() => _handleUserInput(1)}
+          onClick={() => _handleGameMoves(1)}
         >
           +1
         </button>
@@ -161,13 +172,9 @@ function Game() {
 
   return (
     <div className="game-wrap">
-      {/* <div>
-        User:
-        <input type="text" onChange={e => _handleUserName(e)} value={user} />
-      </div> */}
       <h2>Game Id: {gameId}</h2>
       <div>
-        <GameLog log={currentGame ? currentGame.log : []} />
+        <GameMoves log={currentGame ? currentGame.log : []} />
       </div>
       {_renderUserControls()}
       <RegistrationForm
