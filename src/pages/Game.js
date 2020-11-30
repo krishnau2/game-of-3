@@ -7,12 +7,18 @@ import GameShareLink from "../components/GameShareLink";
 import RegistrationForm from "../components/RegistrationForm";
 import GameMoves from "../components/GameMoves";
 import GameControls from "../components/GameControls";
+import GameEndedMessage from "../components/GameEndedMessage";
 
-import { getCurrentUserSession, clearSession } from "../services/util";
+import {
+  getCurrentUserSession,
+  clearSession,
+  createCurrentUserSession
+} from "../services/util";
 import { gameStatus } from "../services/gameConstants";
 
-function Game() {
+function Game(props) {
   const [showForm, showRegistrationForm] = useState(false);
+  const [showMessage, showEndMessage] = useState(false);
   const [user, setUser] = useState({});
   const [currentGame, setCurrentGame] = useState(null);
   let { gameId } = useParams();
@@ -54,6 +60,10 @@ function Game() {
         if (currentGameValue.players.length < 2) {
           showRegistrationForm(true);
         }
+      }
+
+      if (currentGameValue.status === gameStatus.ended) {
+        showEndMessage(true);
       }
 
       setCurrentGame(currentGameValue);
@@ -104,7 +114,7 @@ function Game() {
       });
     } else {
       gameObj.update({
-        currentPlayer: null,
+        // currentPlayer: null,
         currentNumber: newMoveObject.nextNumber,
         log: log,
         status: gameStatus.ended,
@@ -123,6 +133,7 @@ function Game() {
       status: gameStatus.inprogress
     });
     setUser(user);
+    createCurrentUserSession(user);
     // sessionStorage.setItem("user", JSON.stringify(user));
     showRegistrationForm(false);
   };
@@ -157,6 +168,13 @@ function Game() {
         newGame={false}
         onHide={() => showRegistrationForm(false)}
         register={_handleUserRegistration}
+      />
+      <GameEndedMessage
+        show={showMessage}
+        currentGame={currentGame}
+        user={user}
+        onHide={() => showEndMessage(false)}
+        redirectToHome={() => props.history.push("/")}
       />
     </div>
   );
